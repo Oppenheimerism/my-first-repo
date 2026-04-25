@@ -125,14 +125,47 @@ godzilla.position.set(26, 0, -3);
 godzilla.rotation.y = -Math.PI / 4;
 scene.add(godzilla);
 
+// Voxel UFO hovering above the peak
+const matUfoBody = new THREE.MeshLambertMaterial({ color: 0x888888 });
+const matUfoDome = new THREE.MeshLambertMaterial({ color: 0x66ccff });
+const matUfoLight = new THREE.MeshLambertMaterial({ color: 0xffff00, emissive: 0xffaa00 });
+const ufo = new THREE.Group();
+const putUfo = (x, y, z, mat) => {
+  const b = new THREE.Mesh(cube, mat);
+  b.position.set(x, y, z);
+  ufo.add(b);
+};
+// Saucer disk (wider middle ring)
+for (let x = -3; x <= 3; x++) for (let z = -3; z <= 3; z++) {
+  const d = Math.sqrt(x*x + z*z);
+  if (d <= 3) putUfo(x, 0, z, matUfoBody);
+}
+// Dome on top
+for (let x = -1; x <= 1; x++) for (let z = -1; z <= 1; z++) putUfo(x, 1, z, matUfoDome);
+putUfo(0, 2, 0, matUfoDome);
+// Blinking lights underneath
+putUfo(-2, -1, 0, matUfoLight);
+putUfo(2, -1, 0, matUfoLight);
+putUfo(0, -1, -2, matUfoLight);
+putUfo(0, -1, 2, matUfoLight);
+
+ufo.position.set(0, 32, 0);
+scene.add(ufo);
+
+// Animate the UFO bobbing
+const ufoAnim = ufo;
+const startY = ufo.position.y;
+function ufoFloat(t) { ufoAnim.position.y = startY + Math.sin(t * 0.001) * 1.5; ufoAnim.rotation.y = t * 0.0005; }
+
 addEventListener('resize', () => {
   camera.aspect = innerWidth / innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(innerWidth, innerHeight);
 });
 
-function animate() {
+function animate(t) {
   requestAnimationFrame(animate);
+  ufoFloat(t || 0);
   controls.update();
   renderer.render(scene, camera);
 }
