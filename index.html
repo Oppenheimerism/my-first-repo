@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Voxel Mt. Fuji</title>
+<style>
+  body { margin: 0; overflow: hidden; background: #87ceeb; font-family: sans-serif; }
+  #info {
+    position: absolute; top: 10px; left: 10px;
+    color: white; background: rgba(0,0,0,0.4);
+    padding: 8px 12px; border-radius: 6px;
+    font-size: 14px; user-select: none;
+  }
+</style>
+</head>
+<body>
+<div id="info">Voxel Mt. Fuji — drag to rotate, scroll to zoom</div>
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x87ceeb);
+scene.fog = new THREE.Fog(0x87ceeb, 60, 200);
+
+const camera = new THREE.PerspectiveCamera(60, innerWidth / innerHeight, 0.1, 500);
+camera.position.set(50, 35, 60);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(innerWidth, innerHeight);
+renderer.setPixelRatio(devicePixelRatio);
+document.body.appendChild(renderer.domElement);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.target.set(0, 10, 0);
+
+scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+const sun = new THREE.DirectionalLight(0xffffff, 0.9);
+sun.position.set(40, 60, 30);
+scene.add(sun);
+
+const cube = new THREE.BoxGeometry(1, 1, 1);
+const matRock = new THREE.MeshLambertMaterial({ color: 0x6b5d4f });
+const matSnow = new THREE.MeshLambertMaterial({ color: 0xffffff });
+const matGrass = new THREE.MeshLambertMaterial({ color: 0x4a8b3a });
+
+// Build Mt. Fuji as a stepped pyramid
+const mountainHeight = 24;
+const baseRadius = 22;
+const group = new THREE.Group();
+
+for (let y = 0; y < mountainHeight; y++) {
+  const radius = baseRadius * (1 - y / mountainHeight);
+  for (let x = -radius; x <= radius; x++) {
+    for (let z = -radius; z <= radius; z++) {
+      const dist = Math.sqrt(x * x + z * z);
+      if (dist <= radius) {
+        const isSnow = y > mountainHeight * 0.7;
+        const block = new THREE.Mesh(cube, isSnow ? matSnow : matRock);
+        block.position.set(x, y, z);
+        group.add(block);
+      }
+    }
+  }
+}
+
+// Grass ground
+for (let x = -40; x <= 40; x++) {
+  for (let z = -40; z <= 40; z++) {
+    const dist = Math.sqrt(x * x + z * z);
+    if (dist > baseRadius - 1) {
+      const block = new THREE.Mesh(cube, matGrass);
+      block.position.set(x, -1, z);
+      group.add(block);
+    }
+  }
+}
+
+scene.add(group);
+
+addEventListener('resize', () => {
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+});
+
+function animate() {
+  requestAnimationFrame(animate);
+  controls.update();
+  renderer.render(scene, camera);
+}
+animate();
+</script>
+</body>
+</html>
