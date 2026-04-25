@@ -86,6 +86,45 @@ for (let x = -40; x <= 40; x++) {
 
 scene.add(group);
 
+// Voxel Godzilla stomping near the base
+const matBody = new THREE.MeshLambertMaterial({ color: 0x2d5016 });
+const matBelly = new THREE.MeshLambertMaterial({ color: 0x6b8e3d });
+const matSpike = new THREE.MeshLambertMaterial({ color: 0x4a3a6b });
+const matEye = new THREE.MeshLambertMaterial({ color: 0xff2200 });
+
+const godzilla = new THREE.Group();
+const put = (x, y, z, mat) => {
+  const b = new THREE.Mesh(cube, mat);
+  b.position.set(x, y, z);
+  godzilla.add(b);
+};
+
+// Legs
+for (let y = 0; y < 4; y++) { put(0, y, 0, matBody); put(2, y, 0, matBody); }
+// Torso
+for (let y = 4; y < 9; y++) for (let x = 0; x <= 2; x++) for (let z = 0; z <= 1; z++) {
+  put(x, y, z, (x === 1 && z === 1) ? matBelly : matBody);
+}
+// Arms
+for (let y = 6; y < 8; y++) { put(-1, y, 0, matBody); put(3, y, 0, matBody); }
+// Neck + head
+put(1, 9, 0, matBody);
+for (let y = 10; y < 13; y++) for (let x = 0; x <= 2; x++) for (let z = 0; z <= 1; z++) {
+  put(x, y, z, matBody);
+}
+// Snout
+put(1, 11, -1, matBody); put(1, 11, -2, matBody);
+// Eyes
+put(0, 12, -1, matEye); put(2, 12, -1, matEye);
+// Back spikes
+for (let y = 5; y < 11; y++) put(1, y, 2, matSpike);
+// Tail
+put(1, 4, 2, matBody); put(1, 4, 3, matBody); put(1, 5, 4, matBody); put(1, 6, 5, matBody);
+
+godzilla.position.set(26, 0, -3);
+godzilla.rotation.y = -Math.PI / 4;
+scene.add(godzilla);
+
 addEventListener('resize', () => {
   camera.aspect = innerWidth / innerHeight;
   camera.updateProjectionMatrix();
